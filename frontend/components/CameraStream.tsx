@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import '@google/model-viewer';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': any;
+    }
+  }
+}
 
 export default function CameraStream() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -56,10 +65,8 @@ export default function CameraStream() {
             frameRate: { ideal: 30 }   // standard frame rate for iPhone 15
           },
           audio: false 
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        })
+        if (videoRef.current) videoRef.current.srcObject = stream;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
         toast.error(`Error accessing camera: ${errorMessage}`);
@@ -77,15 +84,91 @@ export default function CameraStream() {
       clearInterval(intervalId);
     };
   }, []);
+  
 
   return (
-    <div className="flex w-full justify-center">
+    <div className="relative w-full flex justify-center">
       <Toaster />
-    <video
+      <video
         ref={videoRef}
         autoPlay
         playsInline
-        className="w-full max-w-[640px] rounded-lg" />
+        className="w-full max-w-[640px] rounded-lg z-index-1" />
     </div>
   );
-} 
+}
+
+declare global {
+  interface DeviceOrientationEvent {
+    requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
+  }
+  interface DeviceOrientationEventStatic {
+    requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
+  }
+}
+
+function Arrow() {
+  const latestHeadingRef = useRef<number | null>(null);
+  const baseHeadingRef = useRef<number | null>(null);
+
+  const handleOrientation = (event: DeviceOrientationEvent) => {
+    latestHeadingRef.current = -event.alpha!;
+    if (baseHeadingRef.current !== null) {
+      const relativeAngle = baseHeadingRef.current - latestHeadingRef.current + 180;
+      const modelViewer = document.querySelector('model-viewer');
+      if (modelViewer) {
+        modelViewer.setAttribute('camera-orbit', `${relativeAngle}deg 50deg auto`);
+      }
+    }
+  };
+  useEffect(() => {
+    return () => {
+      // unmount device orientation reference listener
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, []);
+
+  const calibrate = () => {
+    if (latestHeadingRef.current !== null) {
+      baseHeadingRef.current = latestHeadingRef.current;
+      // Auto-rotate every 10 seconds
+      setInterval(() => {
+        baseHeadingRef.current = (baseHeadingRef.current! + 90) % 360;
+      }, 10000);
+    }
+  };
+
+  const enableOrientation = async () => {
+    if ('requestPermission' in DeviceOrientationEvent) {
+      const permission = await (DeviceOrientationEvent as any).requestPermission(); 
+      if (permission === 'granted') {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    }
+  };
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center">
+      <model-viewer
+        src="/arrow.glb" // public directory?
+        camera-orbit="0 50deg auto"
+        interaction-prompt="none"
+        className="absolute z-10 w-[300px] h-[300px] pointer-events-none bg-zinc-900"
+      />
+      <div className="flex w-full">
+        <button
+            onClick={calibrate}
+            className="absolute top-4 left-4 z-10 bg-black/60 text-white p-2 rounded"
+          >
+            Calibrate
+          </button>
+          <button
+            onClick={enableOrientation}
+            className="absolute top-4 right-4 z-10 bg-black/60 text-white p-2 rounded"
+          >
+            Enable Orientation
+        </button>
+      </div>
+    </div>
+  );
+}
