@@ -19,6 +19,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.join(__dirname, '../.env.local');
 dotenv.config({ path: envPath });
 
+/*
+Things to feed to multimodal agent:
+Assume data provided: 360 image of room and floorplan. Each door is labeled with a unique id.
+Obvious way of differentiating: unique objects e.g., white wall, stone pillar, etc.
+*/
+
 export default defineAgent({
   entry: async (ctx: JobContext) => {
     await ctx.connect();
@@ -27,7 +33,7 @@ export default defineAgent({
     console.log(`starting assistant example agent for ${participant.identity}`);
 
     const model = new openai.realtime.RealtimeModel({
-      instructions: 'You are a helpful assistant.',
+      instructions: 'You are a navigation assistant for a university campus.',
     });
 
     const fncCtx: llm.FunctionContext = {
