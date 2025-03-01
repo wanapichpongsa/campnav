@@ -56,7 +56,7 @@ async def before_llm_cb(assistant: VoicePipelineAgent, chat_ctx: llm.ChatContext
     Callback that runs right before the LLM generates a response.
     Captures the current video frame and adds it to the conversation context.
     """
-    latest_image = await get_latest_image(assistant.room)
+    latest_image = await get_latest_image(ctx.room)
     if latest_image:
         image_content = [ChatImage(image=latest_image)]
         chat_ctx.messages.append(ChatMessage(role="user", content=image_content))
