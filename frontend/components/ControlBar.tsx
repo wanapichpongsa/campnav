@@ -48,7 +48,7 @@ export function ControlBar(props: ControlBarProps) {
             className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md text-sm sm:text-base"
             onClick={requestAudioPermission}
           >
-            Start a conversation
+            Get directions
           </motion.button>
         )}
       </AnimatePresence>

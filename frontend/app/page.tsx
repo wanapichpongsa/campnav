@@ -43,11 +43,9 @@ export default function Page() {
   return (
     <main
       data-lk-theme="default"
-      className="min-h-screen w-full flex flex-col justify-between bg-[var(--lk-bg)] p-4 md:p-8"
+      className="min-h-screen w-full flex flex-col bg-[var(--lk-bg)] overflow-y-hidden"
     >
-      <div className="w-full max-w-4xl mx-auto">
-        <CameraStream />
-      </div>
+      <CameraStream />
       
       <LiveKitRoom
         token={connectionDetails?.participantToken}
@@ -59,7 +57,7 @@ export default function Page() {
         onDisconnected={() => {
           updateConnectionDetails(undefined);
         }}
-        className="flex flex-col gap-4 items-center justify-center flex-grow"
+        className="flex flex-col items-center"
       >
         <SimpleVoiceAssistant onStateChange={setAgentState} />
         <ControlBar

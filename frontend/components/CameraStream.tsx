@@ -51,8 +51,9 @@ export default function CameraStream() {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: {
             facingMode: 'environment', // prefer back camera on phone
-            width: 640,
-            height: 480,
+            width: { ideal: 1620 },    // iPhone 15 supports 1920x1080
+            height: { ideal: 1080 },   // height is width and width is height on mobile for some reason
+            frameRate: { ideal: 30 }   // standard frame rate for iPhone 15
           },
           audio: false 
         });
@@ -78,14 +79,13 @@ export default function CameraStream() {
   }, []);
 
   return (
-    <div className="relative">
-        <Toaster />
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full max-w-[640px] rounded-lg mx-auto"
-      />
+    <div className="flex w-full justify-center">
+      <Toaster />
+    <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        className="w-full max-w-[640px] rounded-lg" />
     </div>
   );
 } 
